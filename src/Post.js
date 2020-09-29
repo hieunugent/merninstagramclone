@@ -1,37 +1,71 @@
 import { Avatar } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
-import { db } from "./firebase";
+// import { db } from "./firebase";
 import "./Post.css";
-import firebase from "firebase";
+// import firebase from "firebase";
+import axios from "./axios";
+import Pusher from "pusher-js";
+import { setLogLevel } from "firebase";
 function Post({ user, postId, username, caption, imageUrl }) {
   const [comments, setComments] = useState([]);
   const [comment, setComment] = useState("");
 
+     
+
+
+       
+
+const fetchComments = async () =>
+  await axios.get(`/sync/:id`).then((response) => {
+    response.data.forEach((post) => {
+      if (post.comments.length) {
+        console.log(post.comments);
+      // //  setComments([{username:'hieuNguyen', text: 'testcase'}])
+       post.comments.forEach(data => setComments(data))  ;
+        
+      }
+    });
+  });
+
+useEffect(() => {
+  var pusher = new Pusher("8743f95f886a8fca2a2a", {
+    cluster: "us2",
+  });
+
+  var channel = pusher.subscribe("posts");
+  channel.bind("inserted", (data) => {
+    fetchComments();
+  });
+}, []);
   useEffect(() => {
-    let unsubscribe;
-    if (postId) {
-      unsubscribe = db
-        .collection("posts")
-        .doc(postId)
-        .collection("comments")
-        .orderBy("timestamp", "desc")
-        .onSnapshot((snapshot) => {
-          setComments(snapshot.docs.map((doc) => doc.data()));
-        });
-    }
-    return () => {
-      unsubscribe();
-    };
+    // let unsubscribe;
+    // if (postId) {
+    //   unsubscribe = db
+    //     .collection("posts")
+    //     .doc(postId)
+    //     .collection("comments")
+    //     .orderBy("timestamp", "desc")
+    //     .onSnapshot((snapshot) => {
+    //       setComments(snapshot.docs.map((doc) => doc.data()));
+    //     });
+
+    // }
+    // return () => {
+    //   unsubscribe();
+    // };
+    
+
+    fetchComments();
   }, [postId]);
 
   const postComment = (event) => {
     event.preventDefault();
-
-    db.collection("posts").doc(postId).collection("comments").add({
-      text: comment,
-      username: user.displayName,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    axios.patch('/upload', {postId, comment, user})
+    // db.collection("posts").doc(postId).collection("comments").add({
+    //   text: comment,
+    //   username: user.displayName,
+    //   timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    // });
     setComment("");
   };
   return (

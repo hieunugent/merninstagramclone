@@ -8,7 +8,7 @@ import { Button, Input, Modal } from "@material-ui/core";
 import { auth } from "./firebase";
 import ImageUpload from "./ImageUpload";
 import InstagramEmbed from "react-instagram-embed";
-import axios from './axios';
+import axios from "./axios";
 import Pusher from "pusher-js";
 function getModalStyle() {
   const top = 50;
@@ -34,7 +34,7 @@ function App() {
   const classes = useStyles();
   const [posts, setPosts] = useState([]);
   const [openSignin, setOpenSignIn] = useState(false);
-  const [openRegister, setopenRegister]=useState(false)
+  const [openRegister, setopenRegister] = useState(false);
   const [modalStyle] = useState(getModalStyle);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -46,7 +46,7 @@ function App() {
     // it where the code runn for signin
     const unsubscribe = auth.onAuthStateChanged((authUser) => {
       if (authUser) {
-        console.log(authUser);
+        // console.log(authUser);
         setUser(authUser);
         // if (authUser.displayName) {
         // } else {
@@ -64,41 +64,37 @@ function App() {
     };
   }, [user, username]);
 
-     const fetchPosts = async () =>
-       await axios.get("/sync").then((response) => {
-         console.log(response);
+  const fetchPosts = async () =>
+    await axios.get("/sync").then((response) => {
+      // console.log(response);
 
-         setPosts(response.data);
-       });
-   useEffect(()=>{
- var pusher = new Pusher("8743f95f886a8fca2a2a", {
-   cluster: "us2",
- });
+      setPosts(response.data);
+    });
+  useEffect(() => {
+    var pusher = new Pusher("8743f95f886a8fca2a2a", {
+      cluster: "us2",
+    });
 
- var channel = pusher.subscribe("posts");
- channel.bind("inserted", (data)=> {
-     
- 
-    fetchPosts();
- });
-   }  ,[])
+    var channel = pusher.subscribe("posts");
+    channel.bind("inserted", (data) => {
+      fetchPosts();
+    });
+  }, []);
   useEffect(() => {
     // it where the code run
 
     // db.collection("posts").orderBy('timestamp','desc').onSnapshot((snapshot) => {
     //   setPosts(snapshot.docs.map((doc) => ({ id: doc.id, post: doc.data() })));
     // });
- 
+
     fetchPosts();
-
-
   }, []);
 
-  console.log('post>>>>>>>: ', posts);
+  // console.log("post>>>>>>>: ", posts);
 
-posts.forEach(post => {
-  console.log('post >>>>>>', post);
-})
+  // posts.forEach((post) => {
+  //   console.log("post >>>>>>", post);
+  // });
 
   const signUp = (event) => {
     event.preventDefault();
@@ -111,15 +107,16 @@ posts.forEach(post => {
       })
       .catch((error) => alert(error.message));
 
-      setopenRegister(false);
+    setopenRegister(false);
   };
- const signIn=(event)=>{
+  const signIn = (event) => {
     event.preventDefault();
-    auth.signInWithEmailAndPassword(email, password).catch((error)=> alert(error.message))
+    auth
+      .signInWithEmailAndPassword(email, password)
+      .catch((error) => alert(error.message));
 
     setOpenSignIn(false);
- }
-
+  };
 
   return (
     <div className="app">
@@ -212,7 +209,7 @@ posts.forEach(post => {
       <div className="app__posts">
         <div className="app__postsLeft">
           {/* Posts */}
-          {posts.map(( post ) => (
+          {posts.map((post) => (
             <Post
               key={post._id}
               postId={post._id}
