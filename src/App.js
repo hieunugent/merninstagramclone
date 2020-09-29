@@ -8,6 +8,8 @@ import { Button, Input, Modal } from "@material-ui/core";
 import { auth } from "./firebase";
 import ImageUpload from "./ImageUpload";
 import InstagramEmbed from "react-instagram-embed";
+import axios from './axios';
+import Pusher from "pusher-js";
 function getModalStyle() {
   const top = 50;
   const left = 50;
@@ -62,13 +64,42 @@ function App() {
     };
   }, [user, username]);
 
+     const fetchPosts = async () =>
+       await axios.get("/sync").then((response) => {
+         console.log(response);
+
+         setPosts(response.data);
+       });
+   useEffect(()=>{
+ var pusher = new Pusher("8743f95f886a8fca2a2a", {
+   cluster: "us2",
+ });
+
+ var channel = pusher.subscribe("posts");
+ channel.bind("inserted", (data)=> {
+     
+ 
+    fetchPosts();
+ });
+   }  ,[])
   useEffect(() => {
     // it where the code run
 
-    db.collection("posts").orderBy('timestamp','desc').onSnapshot((snapshot) => {
-      setPosts(snapshot.docs.map((doc) => ({ id: doc.id, post: doc.data() })));
-    });
+    // db.collection("posts").orderBy('timestamp','desc').onSnapshot((snapshot) => {
+    //   setPosts(snapshot.docs.map((doc) => ({ id: doc.id, post: doc.data() })));
+    // });
+ 
+    fetchPosts();
+
+
   }, []);
+
+  console.log('post>>>>>>>: ', posts);
+
+posts.forEach(post => {
+  console.log('post >>>>>>', post);
+})
+
   const signUp = (event) => {
     event.preventDefault();
     auth
@@ -181,14 +212,14 @@ function App() {
       <div className="app__posts">
         <div className="app__postsLeft">
           {/* Posts */}
-          {posts.map(({ id, post }) => (
+          {posts.map(( post ) => (
             <Post
-              key={id}
-              postId={id}
+              key={post._id}
+              postId={post._id}
               user={user}
-              username={post.username}
+              username={post.user}
               caption={post.caption}
-              imageUrl={post.imageUrl}
+              imageUrl={post.image}
             />
           ))}
 

@@ -3,6 +3,12 @@ import React, { useState } from 'react'
 import {storage, db} from "./firebase";
 import firebase from "firebase";
 import "./ImageUpload.css";
+import axios from "./axios";
+
+
+
+
+
 function ImageUpload({username}) {
      const [image, setImage] = useState(null);
      const [ url, setUrl] = useState("");
@@ -37,13 +43,19 @@ function ImageUpload({username}) {
                  .getDownloadURL()
                  .then((url) => {
                      setUrl(url);
+                    axios.post('/upload', {
+                        caption:caption,
+                        user: username,
+                        image: url,
+                    })
+
                      // post image inside database
-                     db.collection("posts").add({
-                        imageUrl: url,
-                        caption: caption,
-                        username: username,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                     });
+                    //  db.collection("posts").add({
+                    //     imageUrl: url,
+                    //     caption: caption,
+                    //     username: username,
+                    //     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    //  });
 
                      setProgress(0);
                      setCaption('');
