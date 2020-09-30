@@ -5,7 +5,7 @@ import "./Post.css";
 // import firebase from "firebase";
 import axios from "./axios";
 import Pusher from "pusher-js";
-import { setLogLevel } from "firebase";
+
 function Post({ user, postId, username, caption, imageUrl }) {
   const [comments, setComments] = useState([]);
   const [comment, setComment] = useState("");
@@ -16,15 +16,9 @@ function Post({ user, postId, username, caption, imageUrl }) {
        
 
 const fetchComments = async () =>
-  await axios.get(`/sync/:id`).then((response) => {
-    response.data.forEach((post) => {
-      if (post.comments.length) {
-        console.log(post.comments);
-      // //  setComments([{username:'hieuNguyen', text: 'testcase'}])
-       post.comments.forEach(data => setComments(data))  ;
-        
-      }
-    });
+  await axios.get(`/sync/${postId}`).then((response) => {
+    // console.log(response.data.comments);
+    setComments(response.data.comments);
   });
 
 useEffect(() => {
@@ -33,34 +27,18 @@ useEffect(() => {
   });
 
   var channel = pusher.subscribe("posts");
-  channel.bind("inserted", (data) => {
+  channel.bind("updated", (data) => {
     fetchComments();
   });
 }, []);
   useEffect(() => {
-    // let unsubscribe;
-    // if (postId) {
-    //   unsubscribe = db
-    //     .collection("posts")
-    //     .doc(postId)
-    //     .collection("comments")
-    //     .orderBy("timestamp", "desc")
-    //     .onSnapshot((snapshot) => {
-    //       setComments(snapshot.docs.map((doc) => doc.data()));
-    //     });
-
-    // }
-    // return () => {
-    //   unsubscribe();
-    // };
     
-
     fetchComments();
-  }, [postId]);
+  }, []);
 
   const postComment = (event) => {
     event.preventDefault();
-    axios.patch('/upload', {postId, comment, user})
+    axios.patch('/upload', {postId, comment, user});
     // db.collection("posts").doc(postId).collection("comments").add({
     //   text: comment,
     //   username: user.displayName,
@@ -94,7 +72,7 @@ useEffect(() => {
       {/* posts comments */}
       <div className="post__comments">
         {comments.map((comment) => (
-          <p>
+          <p key={comment._id}>
             <b>{comment.username}</b> {comment.text}
           </p>
         ))}
